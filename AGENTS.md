@@ -188,6 +188,17 @@ Check bootstrap progress (first boot only):
 
 The repo lives at `C:\agent-browser` on the instance. Rust, Git, and Chrome are pre-installed. The `run.sh` wrapper automatically adds cargo and git to PATH.
 
+## Cursor Cloud specific instructions
+
+The VM is pre-provisioned; the startup update script only runs `pnpm install`. Standard build/test/lint commands are in the Testing section above.
+
+- **Core product is the Rust CLI in `cli/`.** For development, prefer the debug build `cd cli && cargo build` (binary at `cli/target/debug/agent-browser`). `pnpm build:native` produces the release build.
+- **Rust toolchain:** the crate pulls dependencies that need `edition2024`, so Rust must be **≥ 1.85** (the VM ships a newer stable via rustup, already the default). A stock 1.83 toolchain fails with `feature edition2024 is required`.
+- **Node:** the workspace requires Node ≥ 24 (Next.js 16 dashboard/docs). Node 24 is installed via `nvm` and set as the default. A separate Node 22 at `/exec-daemon/node` takes PATH priority in fresh shells; `~/.bashrc` prepends the nvm Node 24 bin so interactive shells resolve v24. If a command reports the wrong Node, run `nvm use 24` first. The Rust CLI itself needs no Node.
+- **Chrome:** system Google Chrome at `/usr/local/bin/google-chrome` is auto-detected by the daemon, so `agent-browser install` is not needed. Verify with `agent-browser doctor --offline --quick`.
+- **E2E tests** (`cargo test e2e -- --ignored --test-threads=1`) launch real headless Chrome and must run serially; see the Testing section.
+- **Dashboard dev server:** `cd packages/dashboard && pnpm dev` serves the Next.js UI on port 3000 (needs Node 24). It is optional; the CLI embeds a built copy via `rust-embed`, and `agent-browser dashboard start` serves the embedded dashboard on port 4848.
+
 <!-- opensrc:start -->
 
 ## Source Code Reference
